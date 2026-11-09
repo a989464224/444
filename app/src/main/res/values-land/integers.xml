@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Landscape board: more cards, more columns. -->
+    <integer name="game_card_count">36</integer>
+    <integer name="game_columns">6</integer>
+</resources>

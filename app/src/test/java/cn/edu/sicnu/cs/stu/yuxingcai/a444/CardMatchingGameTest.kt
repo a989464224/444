@@ -10,33 +10,33 @@ import org.junit.Test
 class CardMatchingGameTest {
 
     private val suits = listOf("♥", "♦", "♠", "♣")
-    private val ranks = listOf("A", "K", "Q", "J")
+    private val ranks = listOf("A", "K", "Q", "J", "10", "9")
 
     @Test
     fun deckSizeIsSuitsTimesRanks() {
         val game = CardMatchingGame(suits, ranks)
-        assertEquals(16, game.cardCount)
+        assertEquals(24, game.cardCount)
         assertEquals(0, game.score)
     }
 
     @Test
     fun cardMatchScoresRankHigherThanSuit() {
         val aceHearts = Card("♥", "A")
-        val aceDiamonds = Card("♦", "A")
-        val kingHearts = Card("♥", "K")
-        val kingSpades = Card("♠", "K")
-        assertEquals(4, aceHearts.match(aceDiamonds)) // same rank
-        assertEquals(1, aceHearts.match(kingHearts))  // same suit
-        assertEquals(0, aceHearts.match(kingSpades))  // neither
+        assertEquals(4, aceHearts.match(listOf(Card("♦", "A"), Card("♠", "A")))) // same rank
+        assertEquals(1, aceHearts.match(listOf(Card("♥", "K"), Card("♥", "Q")))) // same suit
+        assertEquals(0, aceHearts.match(listOf(Card("♦", "K"), Card("♠", "Q")))) // neither
     }
 
     @Test
-    fun firstChooseFlipsCardUpAndChargesCost() {
+    fun firstTwoChoosesFlipCardsUp() {
         val game = CardMatchingGame(suits, ranks)
-        val turn = game.chooseCardAtIndex(0)
-        assertEquals(CardMatchingGame.Outcome.CHOSEN, turn.outcome)
+        val first = game.chooseCardAtIndex(0)
+        val second = game.chooseCardAtIndex(1)
+        assertEquals(CardMatchingGame.Outcome.CHOSEN, first.outcome)
+        assertEquals(CardMatchingGame.Outcome.CHOSEN, second.outcome)
         assertTrue(game.cardAtIndex(0).isChosen)
-        assertEquals(-CardMatchingGame.COST_TO_CHOOSE, game.score)
+        assertTrue(game.cardAtIndex(1).isChosen)
+        assertEquals(-2 * CardMatchingGame.COST_TO_CHOOSE, game.score)
     }
 
     @Test
@@ -46,68 +46,72 @@ class CardMatchingGameTest {
         val turn = game.chooseCardAtIndex(0)
         assertEquals(CardMatchingGame.Outcome.UNCHOSEN, turn.outcome)
         assertFalse(game.cardAtIndex(0).isChosen)
-        assertEquals(-CardMatchingGame.COST_TO_CHOOSE, game.score)
     }
 
     @Test
-    fun matchingByRankMatchesBothCards() {
-        val game = CardMatchingGame(listOf("♥", "♦"), listOf("A", "K"))
-        val first = indexOfCard(game, "A", "♥")
-        val second = indexOfCard(game, "A", "♦")
-        game.chooseCardAtIndex(first)
-        val turn = game.chooseCardAtIndex(second)
+    fun matchingThreeOfSameRankMatchesAll() {
+        val game = CardMatchingGame(listOf("♥", "♦", "♠"), listOf("A", "K"))
+        val a1 = indexOfCard(game, "A", "♥")
+        val a2 = indexOfCard(game, "A", "♦")
+        val a3 = indexOfCard(game, "A", "♠")
+        game.chooseCardAtIndex(a1)
+        game.chooseCardAtIndex(a2)
+        val turn = game.chooseCardAtIndex(a3)
         assertEquals(CardMatchingGame.Outcome.MATCHED, turn.outcome)
-        assertTrue(game.cardAtIndex(first).isMatched)
-        assertTrue(game.cardAtIndex(second).isMatched)
-        // -1 (choose) + 4*4 (rank match) - 1 (cost) = 14
-        assertEquals(14, game.score)
+        assertTrue(game.cardAtIndex(a1).isMatched)
+        assertTrue(game.cardAtIndex(a2).isMatched)
+        assertTrue(game.cardAtIndex(a3).isMatched)
+        // -1 -1 -1 (choose costs) + 4*4 (rank match) = 13
+        assertEquals(13, game.score)
     }
 
     @Test
-    fun matchingBySuitScoresLessThanRank() {
-        val game = CardMatchingGame(listOf("♥", "♦"), listOf("A", "K"))
-        val first = indexOfCard(game, "A", "♥")
-        val second = indexOfCard(game, "K", "♥")
-        game.chooseCardAtIndex(first)
-        val turn = game.chooseCardAtIndex(second)
+    fun matchingThreeOfSameSuitScoresLess() {
+        val game = CardMatchingGame(listOf("♥", "♦", "♠", "♣"), listOf("A", "K", "Q"))
+        val h1 = indexOfCard(game, "A", "♥")
+        val h2 = indexOfCard(game, "K", "♥")
+        val h3 = indexOfCard(game, "Q", "♥")
+        game.chooseCardAtIndex(h1)
+        game.chooseCardAtIndex(h2)
+        val turn = game.chooseCardAtIndex(h3)
         assertEquals(CardMatchingGame.Outcome.MATCHED, turn.outcome)
-        // -1 (choose) + 1*4 (suit match) - 1 (cost) = 2
-        assertEquals(2, game.score)
+        // -1 -1 -1 (choose costs) + 1*4 (suit match) = 1
+        assertEquals(1, game.score)
     }
 
     @Test
-    fun mismatchFlipsPreviousCardBackDown() {
-        val game = CardMatchingGame(listOf("♥", "♦"), listOf("A", "K"))
-        val first = indexOfCard(game, "A", "♥")
-        val second = indexOfCard(game, "K", "♦")
-        game.chooseCardAtIndex(first)
-        val turn = game.chooseCardAtIndex(second)
+    fun mismatchFlipsFirstTwoBackAndKeepsThird() {
+        val game = CardMatchingGame(listOf("♥", "♦", "♠"), listOf("A", "K"))
+        val a1 = indexOfCard(game, "A", "♥")
+        val a2 = indexOfCard(game, "A", "♦")
+        val k1 = indexOfCard(game, "K", "♠")
+        game.chooseCardAtIndex(a1)
+        game.chooseCardAtIndex(a2)
+        val turn = game.chooseCardAtIndex(k1)
         assertEquals(CardMatchingGame.Outcome.MISMATCHED, turn.outcome)
-        assertEquals(first, turn.flippedBack)
-        assertFalse(game.cardAtIndex(first).isChosen)
-        assertTrue(game.cardAtIndex(second).isChosen)
-        // -1 (choose) - 2 (penalty) - 1 (cost) = -4
-        assertEquals(-4, game.score)
+        assertFalse(game.cardAtIndex(a1).isChosen)
+        assertFalse(game.cardAtIndex(a2).isChosen)
+        assertTrue(game.cardAtIndex(k1).isChosen)
+        // -1 -1 -1 (choose costs) - 2 (penalty) = -5
+        assertEquals(-5, game.score)
     }
 
     @Test
-    fun completingAllMatchesWinsGame() {
-        val game = CardMatchingGame(suits, ranks)
-        for (rank in ranks) {
-            val a = indexOfCard(game, rank, "♥", onlyUnmatched = true)
-            val b = indexOfCard(game, rank, "♦", onlyUnmatched = true)
-            game.chooseCardAtIndex(a)
-            game.chooseCardAtIndex(b)
-
-            val c = indexOfCard(game, rank, "♠", onlyUnmatched = true)
-            val d = indexOfCard(game, rank, "♣", onlyUnmatched = true)
-            game.chooseCardAtIndex(c)
-            game.chooseCardAtIndex(d)
-        }
+    fun completingAllGroupsWinsGame() {
+        val game = CardMatchingGame(listOf("♥", "♦", "♠"), listOf("A", "K"))
+        // match the three A's
+        game.chooseCardAtIndex(indexOfCard(game, "A", "♥"))
+        game.chooseCardAtIndex(indexOfCard(game, "A", "♦"))
+        game.chooseCardAtIndex(indexOfCard(game, "A", "♠"))
+        // match the three K's
+        game.chooseCardAtIndex(indexOfCard(game, "K", "♥"))
+        game.chooseCardAtIndex(indexOfCard(game, "K", "♦"))
+        val turn = game.chooseCardAtIndex(indexOfCard(game, "K", "♠"))
+        assertEquals(CardMatchingGame.Outcome.GAME_WON, turn.outcome)
         assertTrue(game.isGameOver)
         assertTrue(game.cardsView.all { it.isMatched })
-        // 8 rank-matches, each netting 16 - 1 - 1 = 14 points.
-        assertEquals(8 * 14, game.score)
+        // 2 rank-matches, each netting 13.
+        assertEquals(2 * 13, game.score)
     }
 
     @Test
@@ -117,7 +121,7 @@ class CardMatchingGameTest {
         game.reset()
         assertEquals(0, game.score)
         assertFalse(game.isGameOver)
-        assertEquals(16, game.cardCount)
+        assertEquals(24, game.cardCount)
         assertTrue(game.cardsView.none { it.isChosen || it.isMatched })
     }
 

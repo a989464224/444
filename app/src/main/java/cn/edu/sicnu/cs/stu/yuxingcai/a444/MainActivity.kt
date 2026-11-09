@@ -2,8 +2,11 @@ package cn.edu.sicnu.cs.stu.yuxingcai.a444
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
@@ -36,6 +39,29 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_play_game).setOnClickListener {
             startActivity(Intent(this, CardGameActivity::class.java))
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_about -> {
+                showAboutDialog()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showAboutDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.about_title)
+            .setMessage(R.string.about_message)
+            .setPositiveButton(R.string.btn_ok, null)
+            .show()
     }
 
     override fun onResume() {

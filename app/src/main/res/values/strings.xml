@@ -6,6 +6,11 @@
     <string name="title_edit_info">修改信息</string>
     <string name="title_card_game">翻牌游戏</string>
 
+    <!-- Menu / about dialog -->
+    <string name="menu_about">关于</string>
+    <string name="about_title">关于本应用</string>
+    <string name="about_message">翻牌游戏\n作者：余兴才\n学号：2024180548</string>
+
     <!-- Player info labels -->
     <string name="label_name">姓名</string>
     <string name="label_gender">性别</string>
@@ -25,6 +30,7 @@
     <string name="btn_save">保存</string>
     <string name="btn_cancel">取消</string>
     <string name="btn_back">返回</string>
+    <string name="btn_ok">确定</string>
 
     <!-- Edit form hints -->
     <string name="hint_name">请输入姓名</string>
@@ -41,6 +47,8 @@
     <string name="win_new_record">刷新纪录！最高分已更新</string>
 
     <!-- Card suits (the first two are rendered in red) -->
+    <string name="card_back_symbol">★</string>
+
     <string-array name="card_suits">
         <item>♥</item>
         <item>♦</item>
@@ -54,5 +62,10 @@
         <item>K</item>
         <item>Q</item>
         <item>J</item>
+        <item>10</item>
+        <item>9</item>
+        <item>8</item>
+        <item>7</item>
+        <item>6</item>
     </string-array>
 </resources>

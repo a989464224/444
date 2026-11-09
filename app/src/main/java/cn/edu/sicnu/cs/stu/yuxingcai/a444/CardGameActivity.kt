@@ -5,17 +5,24 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import cn.edu.sicnu.cs.stu.yuxingcai.a444.model.CardMatchingGame
-import cn.edu.sicnu.cs.stu.yuxingcai.a444.view.GameBoardView
+import cn.edu.sicnu.cs.stu.yuxingcai.a444.view.CardAdapter
 
 /**
- * The game's controller: it owns the [CardMatchingGame] model, reacts to taps
- * from the [GameBoardView], and keeps both model and view in sync.
+ * The game's controller: it owns the [CardMatchingGame] model, feeds cards to a
+ * [RecyclerView] via [CardAdapter], and reacts to taps to keep the model and
+ * view in sync.
+ *
+ * The card count and column count come from integer resources, so the board
+ * adapts automatically between portrait and landscape orientations.
  */
 class CardGameActivity : AppCompatActivity() {
 
     private lateinit var game: CardMatchingGame
-    private lateinit var board: GameBoardView
+    private lateinit var recycler: RecyclerView
+    private lateinit var adapter: CardAdapter
     private lateinit var scoreValue: TextView
     private lateinit var matchesValue: TextView
     private lateinit var remainingValue: TextView
@@ -24,18 +31,28 @@ class CardGameActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_card_game)
 
-        board = findViewById(R.id.game_board)
+        recycler = findViewById(R.id.recycler_cards)
         scoreValue = findViewById(R.id.tv_score_value)
         matchesValue = findViewById(R.id.tv_matches_value)
         remainingValue = findViewById(R.id.tv_remaining_value)
 
         val suits = resources.getStringArray(R.array.card_suits).toList()
-        val ranks = resources.getStringArray(R.array.card_ranks).toList()
+        val allRanks = resources.getStringArray(R.array.card_ranks).toList()
+        val cardCount = resources.getInteger(R.integer.game_card_count)
+        val columns = resources.getInteger(R.integer.game_columns)
+
+        // Build the deck from the first `cardCount / suits.size` ranks.
+        val ranks = allRanks.take(cardCount / suits.size)
         game = CardMatchingGame(suits, ranks)
 
-        board.redSuits = suits.take(2).toSet()
-        board.cards = game.cardsView
-        board.onCardTap = { index -> onCardTapped(index) }
+        adapter = CardAdapter(
+            redSuits = suits.take(2).toSet(),
+            backSymbol = getString(R.string.card_back_symbol)
+        ) { index -> onCardTapped(index) }
+
+        recycler.layoutManager = GridLayoutManager(this, columns)
+        recycler.adapter = adapter
+        adapter.submitList(game.cardsView)
 
         findViewById<Button>(R.id.btn_restart).setOnClickListener { restartGame() }
 
@@ -44,19 +61,10 @@ class CardGameActivity : AppCompatActivity() {
 
     private fun onCardTapped(index: Int) {
         val turn = game.chooseCardAtIndex(index)
-        when (turn.outcome) {
-            CardMatchingGame.Outcome.INVALID -> return
-            CardMatchingGame.Outcome.CHOSEN -> board.flipTo(index, true)
-            CardMatchingGame.Outcome.UNCHOSEN -> board.flipTo(index, false)
-            CardMatchingGame.Outcome.MATCHED -> board.flipTo(index, true)
-            CardMatchingGame.Outcome.MISMATCHED -> {
-                board.flipTo(index, true)
-                turn.flippedBack?.let { board.flipTo(it, false) }
-            }
-            CardMatchingGame.Outcome.GAME_WON -> {
-                board.flipTo(index, true)
-                onGameWon()
-            }
+        if (turn.outcome == CardMatchingGame.Outcome.INVALID) return
+        adapter.submitList(game.cardsView)
+        if (turn.outcome == CardMatchingGame.Outcome.GAME_WON) {
+            onGameWon()
         }
         updateStats()
     }
@@ -86,13 +94,13 @@ class CardGameActivity : AppCompatActivity() {
 
     private fun restartGame() {
         game.reset()
-        board.cards = game.cardsView
+        adapter.submitList(game.cardsView)
         updateStats()
     }
 
     private fun updateStats() {
         scoreValue.text = game.score.toString()
-        matchesValue.text = game.matchedPairCount.toString()
+        matchesValue.text = game.matchedGroupCount.toString()
         remainingValue.text = game.remainingCount.toString()
     }
 }

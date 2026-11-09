@@ -4,7 +4,7 @@ package cn.edu.sicnu.cs.stu.yuxingcai.a444.model
  * A single playing card.
  *
  * A card is [isChosen] while it is face-up on the board, and [isMatched] once
- * it has been successfully paired with another card.
+ * it has been successfully matched as part of a three-card group.
  */
 class Card(
     val suit: String,
@@ -17,13 +17,17 @@ class Card(
         get() = rank + suit
 
     /**
-     * Scores a match against [other]: a rank match is worth more than a suit
-     * match, and zero is returned when neither matches.
+     * Scores this card together with [others] as a three-card group:
+     * all cards sharing the same rank scores [SCORE_RANK_MATCH], all sharing
+     * the same suit scores [SCORE_SUIT_MATCH], otherwise zero.
      */
-    fun match(other: Card): Int = when {
-        rank == other.rank -> SCORE_RANK_MATCH
-        suit == other.suit -> SCORE_SUIT_MATCH
-        else -> 0
+    fun match(others: List<Card>): Int {
+        val group = listOf(this) + others
+        return when {
+            group.all { it.rank == rank } -> SCORE_RANK_MATCH
+            group.all { it.suit == suit } -> SCORE_SUIT_MATCH
+            else -> 0
+        }
     }
 
     companion object {

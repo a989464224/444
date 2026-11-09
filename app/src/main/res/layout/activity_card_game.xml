@@ -76,12 +76,12 @@
         </LinearLayout>
     </LinearLayout>
 
-    <cn.edu.sicnu.cs.stu.yuxingcai.a444.view.GameBoardView
-        android:id="@+id/game_board"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_cards"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="8dp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_restart"

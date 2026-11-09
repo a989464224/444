@@ -41,4 +41,10 @@ class MainActivityTest {
     fun playGameButtonIsDisplayed() {
         onView(withId(R.id.btn_play_game)).check(matches(isDisplayed()))
     }
+
+    @Test
+    fun aboutMenuItemShowsAboutDialog() {
+        onView(withText(R.string.menu_about)).perform(click())
+        onView(withText(R.string.about_title)).check(matches(isDisplayed()))
+    }
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Portrait board: 24 cards in 4 columns. -->
+    <integer name="game_card_count">24</integer>
+    <integer name="game_columns">4</integer>
+</resources>

@@ -1,5 +1,7 @@
 package cn.edu.sicnu.cs.stu.yuxingcai.a444
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -18,16 +20,21 @@ class CardGameActivityTest {
     @get:Rule
     val activityRule = ActivityScenarioRule(CardGameActivity::class.java)
 
+    private fun expectedCardCount(): String {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        return context.resources.getInteger(R.integer.game_card_count).toString()
+    }
+
     @Test
     fun showsInitialStats() {
         onView(withId(R.id.tv_score_value)).check(matches(withText("0")))
         onView(withId(R.id.tv_matches_value)).check(matches(withText("0")))
-        onView(withId(R.id.tv_remaining_value)).check(matches(withText("16")))
+        onView(withId(R.id.tv_remaining_value)).check(matches(withText(expectedCardCount())))
     }
 
     @Test
-    fun gameBoardAndRestartButtonAreDisplayed() {
-        onView(withId(R.id.game_board)).check(matches(isDisplayed()))
+    fun recyclerViewAndRestartButtonAreDisplayed() {
+        onView(withId(R.id.recycler_cards)).check(matches(isDisplayed()))
         onView(withId(R.id.btn_restart)).check(matches(isDisplayed()))
     }
 
@@ -35,6 +42,6 @@ class CardGameActivityTest {
     fun restartButtonResetsStats() {
         onView(withId(R.id.btn_restart)).perform(click())
         onView(withId(R.id.tv_score_value)).check(matches(withText("0")))
-        onView(withId(R.id.tv_remaining_value)).check(matches(withText("16")))
+        onView(withId(R.id.tv_remaining_value)).check(matches(withText(expectedCardCount())))
     }
 }
